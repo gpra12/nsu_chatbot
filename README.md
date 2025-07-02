@@ -1,2 +1,2 @@
 # nsu_chatbot
-html &amp; css code
+html &amp; css code & js
