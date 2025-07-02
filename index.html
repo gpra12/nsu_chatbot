@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NSU Smart Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f0fe;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header img {
+      height: 60px;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px;
+      font-size: 24px;
+      color: #333;
+    }
+    #chatContainer {
+      display: none;
+      max-width: 500px;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    #botAvatar {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1976d2;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+    #botAvatar img {
+      width: 50px;
+    }
+    @keyframes pulse {
+      0% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.6); }
+      70% { transform: translateX(-50%) scale(1.05); box-shadow: 0 0 0 20px rgba(25, 118, 210, 0); }
+      100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(25, 118, 210, 0); }
+    }
+    #messages {
+      height: 300px;
+      overflow-y: auto;
+      text-align: left;
+      margin-bottom: 10px;
+    }
+    .msg { margin: 10px 0; }
+    .user { color: blue; }
+    .bot { color: green; }
+    input, select {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #1976d2;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+      margin: 30px 0 10px;
+    }
+    .address {
+      text-align: center;
+      margin-top: 10px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="images.png" alt="NSU Logo">
+  </header>
+
+  <h1>🤖 NSU Smart Chatbot</h1>
+  <div style="text-align:center">
+    <button onclick="document.getElementById('chatContainer').style.display='block'">Start Chat</button>
+    <div class="address">📍 Pokhari, Jamshedpur, Jharkhand</div>
+  </div>
+
+  <div id="chatContainer">
+    <div id="botAvatar">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="Bot Avatar">
+    </div>
+
+    <div style="margin-top: 40px;">
+      <label><b>Language:</b></label>
+      <select id="langSelect" onchange="changeLanguage(this.value)">
+        <option value="en">English 🇬🇧</option>
+        <option value="hi">Hindi 🇮🇳</option>
+      </select>
+    </div>
+
+    <div id="messages"></div>
+
+    <input type="text" id="input" placeholder="Ask about NSU..." onkeypress="if(event.key==='Enter') reply()" />
+    <button onclick="reply()">Send</button>
+    <button onclick="startVoice()">🎤 Speak</button>
+    <button onclick="downloadExcel()">⬇️ Download Chat History (Excel)</button>
+
+  </div>
+
+  <footer>© Guru Prasad Khandait — All Rights Reserved</footer>
+
+<script>
+let currentLang = 'en';
+function downloadExcel() {
+  let table = [["User", "Bot"]]; // Excel header
+  const msgs = document.querySelectorAll("#messages .msg");
+
+  for (let i = 0; i < msgs.length; i += 2) {
+    const user = msgs[i]?.innerText.replace("You:", "").trim() || "";
+    const bot = msgs[i + 1]?.innerText.replace("Bot:", "").trim() || "";
+    table.push([user, bot]);
+  }
+
+  // Convert to CSV
+  let csvContent = "data:text/csv;charset=utf-8," + 
+    table.map(e => e.map(v => `"${v}"`).join(",")).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "nsu_chat_data.csv");
+  document.body.appendChild(link);
+  link.click();
+}
+
+
+const data = {
+  courses: {
+    "btech": {
+      fee: "₹85,000 per year",
+      duration: "4 years",
+      eligibility: "12th with PCM",
+      branches: ["CSE", "ME", "CE", "EEE"]
+    },
+    "mba": {
+      fee: "₹1,00,000 per year",
+      duration: "2 years",
+      eligibility: "Graduation in any discipline"
+    },
+    "bba": {
+      fee: "₹70,000 per year",
+      duration: "3 years",
+      eligibility: "12th pass"
+    },
+    "bca": {
+      fee: "₹65,000 per year",
+      duration: "3 years",
+      eligibility: "12th with Mathematics or Computer Science"
+    },
+    "pharmacy": {
+      fee: "₹90,000 per year",
+      duration: "4 years",
+      eligibility: "12th with PCB/PCM"
+    },
+    "mass communication": {
+      fee: "₹75,000 per year",
+      duration: "3 years",
+      eligibility: "12th pass"
+    },
+    "diploma": {
+      fee: "₹45,000 per year",
+      duration: "3 years",
+      eligibility: "10th pass"
+    },
+    "phd": {
+      fee: "As per UGC norms",
+      duration: "3–5 years",
+      eligibility: "Post Graduation"
+    }
+  },
+  admission: "🎓 Admissions are open. Apply at https://nsu.ac.in",
+  contact: {
+    phone: "+91 657-1234567",
+    email: "info@nsu.ac.in",
+    address: "Pokhari, Jamshedpur, Jharkhand"
+  },
+  hostel: "Yes, hostel is available for boys and girls with Wi-Fi, mess, and security.",
+  placement: "TCS, Infosys, Wipro visit for campus recruitment. Avg package: ₹4.5 LPA."
+};
+
+function startVoice() {
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    const spoken = event.results[0][0].transcript;
+    document.getElementById('input').value = spoken;
+    reply();
+  };
+
+  recognition.onerror = () => alert("🎙️ Voice input failed. Try again.");
+  recognition.start();
+}
+
+function speak(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+  speechSynthesis.speak(utter);
+}
+
+function getHindiName(course) {
+  const map = {
+    "btech": "बीटेक",
+    "mba": "एमबीए",
+    "bba": "बीबीए",
+    "bca": "बीसीए",
+    "pharmacy": "फार्मेसी",
+    "mass communication": "मास कम्युनिकेशन",
+    "diploma": "डिप्लोमा",
+    "phd": "पीएचडी"
+  };
+  return map[course] || course;
+}
+
+function reply() {
+  const inputBox = document.getElementById('input');
+  const text = inputBox.value.toLowerCase().trim();
+  if (!text) return;
+
+  const messages = document.getElementById('messages');
+  messages.innerHTML += `<div class="msg user"><b>You:</b> ${text}</div>`;
+
+  let response = "❓ Sorry, I couldn't understand. Try asking about course fee, eligibility, or duration.";
+
+  for (let key in data.courses) {
+    const hindiName = getHindiName(key);
+    const course = data.courses[key];
+
+    // If user types course name directly
+    if (text.includes(key) || text.includes(hindiName)) {
+      if (
+        text.includes("fee") || text.includes("fees") || text.includes("शुल्क") || text.includes("फीस") ||
+        text.includes("eligibility") || text.includes("योग्यता") ||
+        text.includes("duration") || text.includes("अवधि") || text.includes("समय") ||
+        text.includes("course") || text.includes("कोर्स") || text.includes("about") || text.includes("बारे")
+      ) {
+        response = `📘 ${key.toUpperCase()} Details:\n💰 Fee: ${course.fee}\n⏳ Duration: ${course.duration}\n✅ Eligibility: ${course.eligibility}`;
+        if (key === "btech") {
+          response += `\n🔧 Branches: ${course.branches.join(", ")}`;
+        }
+        break;
+      }
+    }
+  }
+
+  if (text.includes("admission") || text.includes("प्रवेश")) {
+    response = data.admission;
+  } else if (text.includes("contact") || text.includes("phone") || text.includes("email") || text.includes("संपर्क")) {
+    response = `📞 ${data.contact.phone}, 📧 ${data.contact.email}, 📍 ${data.contact.address}`;
+  } else if (text.includes("hostel") || text.includes("रहने") || text.includes("छात्रावास")) {
+    response = data.hostel;
+  } else if (text.includes("placement") || text.includes("job") || text.includes("नौकरी")) {
+    response = data.placement;
+  }
+
+  messages.innerHTML += `<div class="msg bot"><b>Bot:</b> ${response.replace(/\n/g, "<br>")}</div>`;
+  speak(response);
+  inputBox.value = '';
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
+
+
+</body>
+</html>
